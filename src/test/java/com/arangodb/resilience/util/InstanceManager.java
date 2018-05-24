@@ -35,7 +35,6 @@ import com.arangodb.velocypack.VPackSlice;
 import com.arangodb.velocypack.ValueType;
 import com.arangodb.velocystream.Request;
 import com.arangodb.velocystream.RequestType;
-import com.arangodb.velocystream.Response;
 
 /**
  * @author Mark Vollmary
@@ -68,6 +67,14 @@ public class InstanceManager {
 		return Integer.valueOf(split[split.length - 1]);
 	}
 
+	protected VPackSlice execute(final RequestType requestType, final String path) {
+		return execute(requestType, path, null);
+	}
+
+	protected VPackSlice execute(final RequestType requestType, final String path, final VPackSlice body) {
+		return connection.execute(new Request(null, requestType, path).setBody(body)).getBody();
+	}
+
 	public Host startCluster(final int numAgents, final int numCoordinators, final int numDbServeres) {
 		final VPackSlice body = new VPackBuilder() //
 				.add(ValueType.OBJECT) //
@@ -75,22 +82,35 @@ public class InstanceManager {
 				.add("numCoordinators", numCoordinators) //
 				.add("numDbServeres", numDbServeres) //
 				.close().slice();
-		final Request request = new Request(null, RequestType.POST, "/cluster").setBody(body);
-		final Response response = connection.execute(request);
-		final String endpoint = response.getBody().get("endpoint").getAsString();
+		final String endpoint = execute(RequestType.POST, "/cluster", body).get("endpoint").getAsString();
 		return new Host(host(endpoint), port(endpoint));
 	}
 
-	public Collection<Host> coordinators() {
-		final Iterator<VPackSlice> it = connection.execute(new Request(null, RequestType.GET, "/cluster/coordinators"))
-				.getBody().arrayIterator();
+	public Collection<Instance> coordinators() {
+		final Iterator<VPackSlice> it = execute(RequestType.GET, "/cluster/coordinators").arrayIterator();
 		final Iterable<VPackSlice> iterable = () -> it;
-		return StreamSupport.stream(iterable.spliterator(), false)
-				.map(c -> new Host(host(c.getAsString()), port(c.getAsString()))).collect(Collectors.toList());
+		return StreamSupport.stream(iterable.spliterator(), false).map(c -> {
+			final String e = c.get("endpoint").getAsString();
+			final Host endpoint = new Host(host(e), port(e));
+			return new Instance(c.get("name").getAsString(), endpoint);
+		}).collect(Collectors.toList());
+	}
+
+	public boolean isRunning(final Instance instance) {
+		return execute(RequestType.GET, "/instance/" + instance.getName()).get("status").getAsString()
+				.equals("RUNNING");
+	}
+
+	public void shudown(final Instance instance) {
+		execute(RequestType.DELETE, "/instance/" + instance.getName());
+	}
+
+	public void restart(final Instance instance) {
+		execute(RequestType.PATCH, "/instance/" + instance.getName());
 	}
 
 	public void cleanup() {
-		connection.execute(new Request(null, RequestType.DELETE, "/"));
+		execute(RequestType.DELETE, "/");
 	}
 
 	public void shutdown() {

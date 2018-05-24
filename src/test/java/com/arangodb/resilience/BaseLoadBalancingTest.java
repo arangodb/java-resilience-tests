@@ -21,12 +21,14 @@
 package com.arangodb.resilience;
 
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -40,6 +42,7 @@ import com.arangodb.ArangoDB.Builder;
 import com.arangodb.entity.LoadBalancingStrategy;
 import com.arangodb.internal.Host;
 import com.arangodb.model.AqlQueryOptions;
+import com.arangodb.resilience.util.Instance;
 import com.arangodb.velocystream.RequestType;
 
 /**
@@ -91,6 +94,44 @@ public abstract class BaseLoadBalancingTest extends BaseTest {
 			new AqlQueryOptions().batchSize(1), int.class);
 		final long count = StreamSupport.stream(cursor.spliterator(), false).count();
 		assertThat(count, is(2L));
+	}
+
+	@Test
+	public void coordinatorDown() {
+		final List<String> serverIds = new ArrayList<>();
+		Stream.iterate(0, i -> i + 1).limit(NUM_COORDINATORS).forEach(i -> {
+			final String serverId = serverId();
+			assertThat(serverIds, not(hasItem(serverId)));
+			serverIds.add(serverId);
+		});
+		final Instance coordinator = im.coordinators().stream().findFirst().get();
+		im.shudown(coordinator);
+		assertThat(im.isRunning(coordinator), is(false));
+		final List<String> secondRun = Stream.iterate(0, i -> i + 1).limit(NUM_COORDINATORS).map(i -> serverId())
+				.collect(Collectors.toList());
+		assertThat(serverIds, hasItems(secondRun.toArray(new String[] {})));
+		assertThat(serverIds.stream().filter(i -> !secondRun.contains(i)).count(), is(1L));
+	}
+
+	@Test
+	public void coordinatorUpAgain() {
+		final List<String> serverIds = new ArrayList<>();
+		Stream.iterate(0, i -> i + 1).limit(NUM_COORDINATORS).forEach(i -> {
+			final String serverId = serverId();
+			assertThat(serverIds, not(hasItem(serverId)));
+			serverIds.add(serverId);
+		});
+		final Instance coordinator = im.coordinators().stream().findFirst().get();
+		im.shudown(coordinator);
+		assertThat(im.isRunning(coordinator), is(false));
+		Stream.iterate(0, i -> i + 1).limit(NUM_COORDINATORS).map(i -> arango.getVersion());
+		arango.shutdown();
+		im.restart(coordinator);
+		assertThat(im.isRunning(coordinator), is(true));
+		final List<String> thirdRun = Stream.iterate(0, i -> i + 1).limit(NUM_COORDINATORS).map(i -> serverId())
+				.collect(Collectors.toList());
+		assertThat(serverIds, hasItems(thirdRun.toArray(new String[] {})));
+		assertThat(serverIds.stream().filter(i -> !thirdRun.contains(i)).count(), is(0L));
 	}
 
 }
