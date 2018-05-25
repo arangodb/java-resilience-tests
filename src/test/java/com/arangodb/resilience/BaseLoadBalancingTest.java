@@ -51,7 +51,7 @@ import com.arangodb.velocystream.RequestType;
  */
 public abstract class BaseLoadBalancingTest extends BaseTest {
 
-	private static final int NUM_COORDINATORS = 3;
+	protected static final int NUM_COORDINATORS = 3;
 
 	@Before
 	public void setup() {
@@ -71,7 +71,7 @@ public abstract class BaseLoadBalancingTest extends BaseTest {
 		im.cleanup();
 	}
 
-	private String serverId() {
+	protected String serverId() {
 		return execute(RequestType.GET, "/_admin/status").get("serverInfo").get("serverId").toString();
 	}
 
@@ -80,10 +80,12 @@ public abstract class BaseLoadBalancingTest extends BaseTest {
 		final List<String> serverIds = new ArrayList<>();
 		Stream.iterate(0, i -> i + 1).limit(NUM_COORDINATORS).forEach(i -> {
 			final String serverId = serverId();
+			// assert that every call goes to a different coordinator
 			assertThat(serverIds, not(hasItem(serverId)));
 			serverIds.add(serverId);
 		});
 		Stream.iterate(0, i -> i + 1).limit(NUM_COORDINATORS).forEach(i -> {
+			// assert that every call goes to the same coordinator 3 calls before (connection pool size)
 			assertThat(serverIds.get(i), is(serverId()));
 		});
 	}
@@ -93,6 +95,7 @@ public abstract class BaseLoadBalancingTest extends BaseTest {
 		final ArangoCursor<Integer> cursor = arango.db().query("FOR i IN 1..2 RETURN i", null,
 			new AqlQueryOptions().batchSize(1), int.class);
 		final long count = StreamSupport.stream(cursor.spliterator(), false).count();
+		// assert that all results are returned
 		assertThat(count, is(2L));
 	}
 
@@ -101,6 +104,7 @@ public abstract class BaseLoadBalancingTest extends BaseTest {
 		final List<String> serverIds = new ArrayList<>();
 		Stream.iterate(0, i -> i + 1).limit(NUM_COORDINATORS).forEach(i -> {
 			final String serverId = serverId();
+			// assert that every call goes to a different coordinator
 			assertThat(serverIds, not(hasItem(serverId)));
 			serverIds.add(serverId);
 		});
@@ -110,6 +114,7 @@ public abstract class BaseLoadBalancingTest extends BaseTest {
 		final List<String> secondRun = Stream.iterate(0, i -> i + 1).limit(NUM_COORDINATORS).map(i -> serverId())
 				.collect(Collectors.toList());
 		assertThat(serverIds, hasItems(secondRun.toArray(new String[] {})));
+		// assert that the secondRun only includes 2 of the 3 coordinators
 		assertThat(serverIds.stream().filter(i -> !secondRun.contains(i)).count(), is(1L));
 	}
 
@@ -118,19 +123,22 @@ public abstract class BaseLoadBalancingTest extends BaseTest {
 		final List<String> serverIds = new ArrayList<>();
 		Stream.iterate(0, i -> i + 1).limit(NUM_COORDINATORS).forEach(i -> {
 			final String serverId = serverId();
+			// assert that every call goes to a different coordinator
 			assertThat(serverIds, not(hasItem(serverId)));
 			serverIds.add(serverId);
 		});
 		final Instance coordinator = im.coordinators().stream().findFirst().get();
 		im.shudown(coordinator);
 		assertThat(im.isRunning(coordinator), is(false));
+		// perform 3 operations to be sure that all connections are used
 		Stream.iterate(0, i -> i + 1).limit(NUM_COORDINATORS).map(i -> arango.getVersion());
-		arango.shutdown();
+		arango.shutdown(); // close all connections in the connection pool
 		im.restart(coordinator);
 		assertThat(im.isRunning(coordinator), is(true));
 		final List<String> thirdRun = Stream.iterate(0, i -> i + 1).limit(NUM_COORDINATORS).map(i -> serverId())
 				.collect(Collectors.toList());
 		assertThat(serverIds, hasItems(thirdRun.toArray(new String[] {})));
+		// assert that the thridRun includes all 3 coordinators
 		assertThat(serverIds.stream().filter(i -> !thirdRun.contains(i)).count(), is(0L));
 	}
 
