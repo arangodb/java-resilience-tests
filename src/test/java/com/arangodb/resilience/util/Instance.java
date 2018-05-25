@@ -20,29 +20,33 @@
 
 package com.arangodb.resilience.util;
 
-import com.arangodb.internal.Host;
-
 /**
  * @author Mark Vollmary
  *
  */
 public class Instance {
 
-	private final String name;
-	private final Host endpoint;
+	private String name;
+	private String endpoint;
 
-	public Instance(final String name, final Host endpoint) {
+	public Instance() {
 		super();
-		this.name = name;
-		this.endpoint = endpoint;
 	}
 
 	public String getName() {
 		return name;
 	}
 
-	public Host getEndpoint() {
+	public void setName(final String name) {
+		this.name = name;
+	}
+
+	public String getEndpoint() {
 		return endpoint;
+	}
+
+	public void setEndpoint(final String endpoint) {
+		this.endpoint = endpoint;
 	}
 
 }

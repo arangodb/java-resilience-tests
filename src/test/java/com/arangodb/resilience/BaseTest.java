@@ -55,4 +55,5 @@ public abstract class BaseTest {
 	protected VPackSlice execute(final RequestType requestType, final String path, final VPackSlice body) {
 		return arango.execute(new Request("_system", requestType, path).setBody(body)).getBody();
 	}
+
 }

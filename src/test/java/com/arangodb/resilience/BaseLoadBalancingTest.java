@@ -43,6 +43,7 @@ import com.arangodb.entity.LoadBalancingStrategy;
 import com.arangodb.internal.Host;
 import com.arangodb.model.AqlQueryOptions;
 import com.arangodb.resilience.util.Instance;
+import com.arangodb.velocypack.VPackSlice;
 import com.arangodb.velocystream.RequestType;
 
 /**
@@ -72,7 +73,8 @@ public abstract class BaseLoadBalancingTest extends BaseTest {
 	}
 
 	protected String serverId() {
-		return execute(RequestType.GET, "/_admin/status").get("serverInfo").get("serverId").toString();
+		final VPackSlice execute = execute(RequestType.GET, "/_admin/status");
+		return execute.get("serverInfo").get("serverId").toString();
 	}
 
 	@Test

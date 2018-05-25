@@ -20,21 +20,25 @@
 
 package com.arangodb.resilience.util;
 
+import static com.arangodb.resilience.util.EndpointUtils.host;
+import static com.arangodb.resilience.util.EndpointUtils.port;
+
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Iterator;
+import java.util.Collections;
 import java.util.Properties;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import com.arangodb.ArangoDB;
 import com.arangodb.Protocol;
 import com.arangodb.internal.Host;
+import com.arangodb.velocypack.Type;
+import com.arangodb.velocypack.VPack;
 import com.arangodb.velocypack.VPackBuilder;
 import com.arangodb.velocypack.VPackSlice;
 import com.arangodb.velocypack.ValueType;
 import com.arangodb.velocystream.Request;
 import com.arangodb.velocystream.RequestType;
+import com.arangodb.velocystream.Response;
 
 /**
  * @author Mark Vollmary
@@ -43,6 +47,7 @@ import com.arangodb.velocystream.RequestType;
 public class InstanceManager {
 
 	private final ArangoDB connection;
+	private final VPack vp;
 
 	public InstanceManager() {
 		super();
@@ -56,23 +61,20 @@ public class InstanceManager {
 		} catch (final IOException e) {
 			throw new RuntimeException(e);
 		}
+		vp = new VPack.Builder().build();
 	}
 
-	private static String host(final String endpoint) {
-		return endpoint.replace("tcp://", "").replace("http://", "").split(":")[0];
-	}
-
-	private static int port(final String endpoint) {
-		final String[] split = endpoint.split(":");
-		return Integer.valueOf(split[split.length - 1]);
-	}
-
-	protected VPackSlice execute(final RequestType requestType, final String path) {
+	private VPackSlice execute(final RequestType requestType, final String path) {
 		return execute(requestType, path, null);
 	}
 
-	protected VPackSlice execute(final RequestType requestType, final String path, final VPackSlice body) {
+	private VPackSlice execute(final RequestType requestType, final String path, final VPackSlice body) {
 		return connection.execute(new Request(null, requestType, path).setBody(body)).getBody();
+	}
+
+	private Collection<Instance> deserialize(final VPackSlice vpack) {
+		return vpack == null ? Collections.emptyList() : vp.deserialize(vpack, new Type<Collection<Instance>>() {
+		}.getType());
 	}
 
 	public Host startCluster(final int numAgents, final int numCoordinators, final int numDbServeres) {
@@ -86,14 +88,38 @@ public class InstanceManager {
 		return new Host(host(endpoint), port(endpoint));
 	}
 
+	public Collection<Instance> startAgency() {
+		return deserialize(execute(RequestType.POST, "/agency"));
+	}
+
+	public Collection<Instance> startSingleServer(final int num) {
+		final Response response = connection
+				.execute(new Request(null, RequestType.POST, "/single").putQueryParam("num", num));
+		return deserialize(response.getBody());
+	}
+
 	public Collection<Instance> coordinators() {
-		final Iterator<VPackSlice> it = execute(RequestType.GET, "/cluster/coordinators").arrayIterator();
-		final Iterable<VPackSlice> iterable = () -> it;
-		return StreamSupport.stream(iterable.spliterator(), false).map(c -> {
-			final String e = c.get("endpoint").getAsString();
-			final Host endpoint = new Host(host(e), port(e));
-			return new Instance(c.get("name").getAsString(), endpoint);
-		}).collect(Collectors.toList());
+		return deserialize(execute(RequestType.GET, "/instance/coordinators"));
+	}
+
+	public Collection<Instance> singleServers() {
+		return deserialize(execute(RequestType.GET, "/instance/single"));
+	}
+
+	public void waitForAllInstances() {
+		execute(RequestType.HEAD, "/instance");
+	}
+
+	public void waitForInstance(final String name) {
+		execute(RequestType.HEAD, "/instance/" + name);
+	}
+
+	public Instance getReplicationLeader() {
+		return vp.deserialize(execute(RequestType.GET, "/replication/leader"), Instance.class);
+	}
+
+	public void waitForReplicationLeader() {
+		execute(RequestType.HEAD, "/replication/leader");
 	}
 
 	public boolean isRunning(final Instance instance) {

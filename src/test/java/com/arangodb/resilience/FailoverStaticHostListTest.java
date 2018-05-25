@@ -30,12 +30,13 @@ import com.arangodb.internal.Host;
  * @author Mark Vollmary
  *
  */
-public class LoadBalancingStaticCoordinatorListTest extends BaseLoadBalancingTest {
+public class FailoverStaticHostListTest extends BaseFailoverTest {
 
 	@Override
-	protected void configure(final Builder builder, final Host endpoint) {
-		im.coordinators()
-				.forEach(coordinator -> builder.host(host(coordinator.getEndpoint()), port(coordinator.getEndpoint())));
+	protected void configure(final Builder builder, final Host leader) {
+		builder.host(leader.getHost(), leader.getPort());
+		im.singleServers().stream().filter(i -> port(i.getEndpoint()) != leader.getPort())
+				.forEach(i -> builder.host(host(i.getEndpoint()), port(i.getEndpoint())));
 	}
 
 }

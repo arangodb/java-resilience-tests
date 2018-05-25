@@ -18,24 +18,25 @@
  * Copyright holder is ArangoDB GmbH, Cologne, Germany
  */
 
-package com.arangodb.resilience;
-
-import static com.arangodb.resilience.util.EndpointUtils.host;
-import static com.arangodb.resilience.util.EndpointUtils.port;
-
-import com.arangodb.ArangoDB.Builder;
-import com.arangodb.internal.Host;
+package com.arangodb.resilience.util;
 
 /**
  * @author Mark Vollmary
  *
  */
-public class LoadBalancingStaticCoordinatorListTest extends BaseLoadBalancingTest {
+public abstract class EndpointUtils {
 
-	@Override
-	protected void configure(final Builder builder, final Host endpoint) {
-		im.coordinators()
-				.forEach(coordinator -> builder.host(host(coordinator.getEndpoint()), port(coordinator.getEndpoint())));
+	private EndpointUtils() {
+		super();
+	}
+
+	public static String host(final String endpoint) {
+		return endpoint.replace("tcp://", "").replace("http://", "").split(":")[0];
+	}
+
+	public static int port(final String endpoint) {
+		final String[] split = endpoint.split(":");
+		return Integer.valueOf(split[split.length - 1]);
 	}
 
 }
