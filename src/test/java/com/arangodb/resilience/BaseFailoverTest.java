@@ -34,6 +34,8 @@ import org.junit.Test;
 import com.arangodb.ArangoDB;
 import com.arangodb.internal.Host;
 import com.arangodb.resilience.util.Instance;
+import com.arangodb.velocypack.VPackSlice;
+import com.arangodb.velocystream.RequestType;
 
 /**
  * @author Mark Vollmary
@@ -63,11 +65,18 @@ public abstract class BaseFailoverTest extends BaseTest {
 		im.cleanup();
 	}
 
+	protected String serverId() {
+		final VPackSlice execute = execute(RequestType.GET, "/_api/replication/server-id");
+		return execute.get("serverId").toString();
+	}
+
 	@Test
 	public void leaderDown() {
-		assertThat(arango.getVersion(), is(not(nullValue())));
+		final String leaderId = serverId();
+		assertThat(leaderId, is(not(nullValue())));
 		im.shudown(leader);
-		assertThat(arango.getVersion(), is(not(nullValue())));
+		assertThat(serverId(), is(not(nullValue())));
+		assertThat(serverId(), is(not(leaderId)));
 	}
 
 }

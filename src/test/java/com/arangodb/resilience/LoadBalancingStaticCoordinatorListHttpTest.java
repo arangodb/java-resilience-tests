@@ -20,21 +20,20 @@
 
 package com.arangodb.resilience;
 
-import org.junit.Ignore;
-
 import com.arangodb.ArangoDB.Builder;
+import com.arangodb.Protocol;
 import com.arangodb.internal.Host;
 
 /**
  * @author Mark Vollmary
  *
  */
-@Ignore
-public class FailoverWithRedirectsTest extends BaseFailoverTest {
+public class LoadBalancingStaticCoordinatorListHttpTest extends LoadBalancingStaticCoordinatorListVstTest {
 
 	@Override
-	protected void configure(final Builder builder, final Host leader) {
-		builder.host(leader.getHost(), leader.getPort());
+	protected void configure(final Builder builder, final Host endpoint) {
+		super.configure(builder, endpoint);
+		builder.useProtocol(Protocol.HTTP_JSON);
 	}
 
 }

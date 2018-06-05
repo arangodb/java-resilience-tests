@@ -132,7 +132,7 @@ public class InstanceManager {
 	}
 
 	public void restart(final Instance instance) {
-		execute(RequestType.PATCH, "/instance/" + instance.getName());
+		execute(RequestType.POST, "/instance/" + instance.getName());
 	}
 
 	public void cleanup() {

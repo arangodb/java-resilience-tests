@@ -41,7 +41,7 @@ import com.arangodb.resilience.util.Instance;
  * @author Mark Vollmary
  *
  */
-public class LoadBalancingConnectionTtlTest extends BaseLoadBalancingTest {
+public class LoadBalancingConnectionTtlVstTest extends BaseLoadBalancingTest {
 
 	@Override
 	protected void configure(final Builder builder, final Host endpoint) {

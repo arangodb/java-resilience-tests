@@ -20,9 +20,6 @@
 
 package com.arangodb.resilience;
 
-import static com.arangodb.resilience.util.EndpointUtils.host;
-import static com.arangodb.resilience.util.EndpointUtils.port;
-
 import com.arangodb.ArangoDB.Builder;
 import com.arangodb.internal.Host;
 
@@ -30,12 +27,12 @@ import com.arangodb.internal.Host;
  * @author Mark Vollmary
  *
  */
-public class LoadBalancingStaticCoordinatorListTest extends BaseLoadBalancingTest {
+public class LoadBalancingAcquireHostListVstTest extends BaseLoadBalancingTest {
 
 	@Override
 	protected void configure(final Builder builder, final Host endpoint) {
-		im.coordinators()
-				.forEach(coordinator -> builder.host(host(coordinator.getEndpoint()), port(coordinator.getEndpoint())));
+		builder.host(endpoint.getHost(), endpoint.getPort());
+		builder.acquireHostList(true);
 	}
 
 }

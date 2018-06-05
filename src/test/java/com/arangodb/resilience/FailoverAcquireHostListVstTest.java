@@ -27,11 +27,11 @@ import com.arangodb.internal.Host;
  * @author Mark Vollmary
  *
  */
-public class LoadBalancingAcquireHostListTest extends BaseLoadBalancingTest {
+public class FailoverAcquireHostListVstTest extends BaseFailoverTest {
 
 	@Override
-	protected void configure(final Builder builder, final Host endpoint) {
-		builder.host(endpoint.getHost(), endpoint.getPort());
+	protected void configure(final Builder builder, final Host leader) {
+		builder.host(leader.getHost(), leader.getPort());
 		builder.acquireHostList(true);
 	}
 

@@ -34,7 +34,7 @@
 		<dependency>
 			<groupId>com.arangodb</groupId>
 			<artifactId>arangodb-java-driver</artifactId>
-			<version>4.4.0</version>
+			<version>4.4.2-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
