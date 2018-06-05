@@ -32,6 +32,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.arangodb.ArangoDB;
+import com.arangodb.ArangoDB.Builder;
 import com.arangodb.internal.Host;
 import com.arangodb.resilience.util.Instance;
 import com.arangodb.velocypack.VPackSlice;
@@ -41,7 +42,7 @@ import com.arangodb.velocystream.RequestType;
  * @author Mark Vollmary
  *
  */
-public abstract class BaseFailoverTest extends BaseTest {
+public class FailoverFollowerRedirectVstTest extends BaseTest {
 
 	private Instance leader;
 
@@ -57,7 +58,10 @@ public abstract class BaseFailoverTest extends BaseTest {
 		arango = builder.build();
 	}
 
-	protected abstract void configure(final ArangoDB.Builder builder, final Host leader);
+	protected void configure(final Builder builder, final Host leader) {
+		im.singleServers().stream().filter(i -> port(i.getEndpoint()) != leader.getPort())
+				.forEach(i -> builder.host(host(i.getEndpoint()), port(i.getEndpoint())));
+	}
 
 	@After
 	public void teardown() {
@@ -72,12 +76,11 @@ public abstract class BaseFailoverTest extends BaseTest {
 
 	@Test
 	public void leaderDown() {
-		final String leaderId = serverId();
-		assertThat(leaderId, is(not(nullValue())));
+		final String redirectedLeaderId = serverId();
+		assertThat(redirectedLeaderId, is(not(nullValue())));
 		im.shudown(leader);
-		final String newLeaderId = serverId();
-		assertThat(newLeaderId, is(not(nullValue())));
-		assertThat(newLeaderId, is(not(leaderId)));
+		final String leaderId = serverId();
+		assertThat(leaderId, is(redirectedLeaderId));
 	}
 
 }
