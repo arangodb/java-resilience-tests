@@ -42,7 +42,7 @@ import com.arangodb.velocystream.RequestType;
  * @author Mark Vollmary
  *
  */
-public class FailoverFollowerRedirectVstTest extends BaseTest {
+public class FailoverFollowerVstTest extends BaseTest {
 
 	private Instance leader;
 
@@ -76,11 +76,11 @@ public class FailoverFollowerRedirectVstTest extends BaseTest {
 
 	@Test
 	public void leaderDown() {
-		final String redirectedLeaderId = serverId();
-		assertThat(redirectedLeaderId, is(not(nullValue())));
+		final String followerId = serverId();
+		assertThat(followerId, is(not(nullValue())));
 		im.shudown(leader);
 		final String leaderId = serverId();
-		assertThat(leaderId, is(redirectedLeaderId));
+		assertThat(leaderId, is(followerId));
 	}
 
 }

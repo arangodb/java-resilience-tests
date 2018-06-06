@@ -28,7 +28,7 @@ import com.arangodb.internal.Host;
  * @author Mark Vollmary
  *
  */
-public class FailoverFollowerRedirectHttpTest extends FailoverFollowerRedirectVstTest {
+public class FailoverFollowerHttpTest extends FailoverFollowerVstTest {
 
 	@Override
 	protected void configure(final Builder builder, final Host leader) {
