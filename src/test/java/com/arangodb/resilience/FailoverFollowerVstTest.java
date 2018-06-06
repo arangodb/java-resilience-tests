@@ -36,6 +36,7 @@ import com.arangodb.ArangoDB.Builder;
 import com.arangodb.internal.Host;
 import com.arangodb.resilience.util.Instance;
 import com.arangodb.velocypack.VPackSlice;
+import com.arangodb.velocystream.Request;
 import com.arangodb.velocystream.RequestType;
 
 /**
@@ -78,9 +79,15 @@ public class FailoverFollowerVstTest extends BaseTest {
 	public void leaderDown() {
 		final String followerId = serverId();
 		assertThat(followerId, is(not(nullValue())));
+		assertThat(arango.execute(new Request("_system", RequestType.GET, "/_api/version")).getMeta()
+				.containsKey("X-Arango-Endpoint"),
+			is(true));
 		im.shudown(leader);
 		final String leaderId = serverId();
 		assertThat(leaderId, is(followerId));
+		assertThat(arango.execute(new Request("_system", RequestType.GET, "/_api/version")).getMeta()
+				.containsKey("X-Arango-Endpoint"),
+			is(false));
 	}
 
 }
