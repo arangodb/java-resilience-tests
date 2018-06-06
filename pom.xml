@@ -30,11 +30,18 @@
 		</developer>
 	</developers>
 	
+	<repositories>
+		<repository>
+			<id>arangodb-snapshots</id>
+			<url>https://oss.sonatype.org/content/groups/staging</url>
+		</repository>
+	</repositories>
+	
 	<dependencies>
 		<dependency>
 			<groupId>com.arangodb</groupId>
 			<artifactId>arangodb-java-driver</artifactId>
-			<version>4.4.2-SNAPSHOT</version>
+			<version>4.5.0-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
