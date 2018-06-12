@@ -27,6 +27,8 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
+import java.util.Map;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -75,19 +77,19 @@ public class FailoverFollowerVstTest extends BaseTest {
 		return execute.get("serverId").toString();
 	}
 
+	protected Map<String, String> responseHeader() {
+		return arango.execute(new Request("_system", RequestType.GET, "/_api/version")).getMeta();
+	}
+
 	@Test
 	public void leaderDown() {
 		final String followerId = serverId();
 		assertThat(followerId, is(not(nullValue())));
-		assertThat(arango.execute(new Request("_system", RequestType.GET, "/_api/version")).getMeta()
-				.containsKey("X-Arango-Endpoint"),
-			is(true));
+		assertThat(responseHeader().containsKey("X-Arango-Endpoint"), is(true));
 		im.shudown(leader);
 		final String leaderId = serverId();
 		assertThat(leaderId, is(followerId));
-		assertThat(arango.execute(new Request("_system", RequestType.GET, "/_api/version")).getMeta()
-				.containsKey("X-Arango-Endpoint"),
-			is(false));
+		assertThat(responseHeader().containsKey("X-Arango-Endpoint"), is(false));
 	}
 
 }

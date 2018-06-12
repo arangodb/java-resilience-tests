@@ -27,6 +27,8 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
+import java.util.Map;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,6 +37,7 @@ import com.arangodb.ArangoDB;
 import com.arangodb.internal.Host;
 import com.arangodb.resilience.util.Instance;
 import com.arangodb.velocypack.VPackSlice;
+import com.arangodb.velocystream.Request;
 import com.arangodb.velocystream.RequestType;
 
 /**
@@ -70,14 +73,20 @@ public abstract class BaseFailoverTest extends BaseTest {
 		return execute.get("serverId").toString();
 	}
 
+	protected Map<String, String> responseHeader() {
+		return arango.execute(new Request("_system", RequestType.GET, "/_api/version")).getMeta();
+	}
+
 	@Test
 	public void leaderDown() {
 		final String leaderId = serverId();
 		assertThat(leaderId, is(not(nullValue())));
+		assertThat(responseHeader().containsKey("X-Arango-Endpoint"), is(false));
 		im.shudown(leader);
 		final String newLeaderId = serverId();
 		assertThat(newLeaderId, is(not(nullValue())));
 		assertThat(newLeaderId, is(not(leaderId)));
+		assertThat(responseHeader().containsKey("X-Arango-Endpoint"), is(false));
 	}
 
 }
