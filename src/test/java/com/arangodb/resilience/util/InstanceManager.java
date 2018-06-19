@@ -127,8 +127,17 @@ public class InstanceManager {
 				.equals("RUNNING");
 	}
 
-	public void shudown(final Instance instance) {
-		execute(RequestType.DELETE, "/instance/" + instance.getName());
+	public void shutdown(final Instance instance) {
+		shutdown(instance, false);
+	}
+
+	public void kill(final Instance instance) {
+		shutdown(instance, true);
+	}
+
+	public void shutdown(final Instance instance, final boolean kill) {
+		connection.execute(
+			new Request(null, RequestType.DELETE, "/instance/" + instance.getName()).putQueryParam("kill", kill));
 	}
 
 	public void restart(final Instance instance) {

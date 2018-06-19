@@ -86,7 +86,8 @@ public class FailoverFollowerVstTest extends BaseTest {
 		final String followerId = serverId();
 		assertThat(followerId, is(not(nullValue())));
 		assertThat(responseHeader().containsKey("X-Arango-Endpoint"), is(true));
-		im.shudown(leader);
+		im.shutdown(leader);
+		im.waitForReplicationLeader();
 		final String leaderId = serverId();
 		assertThat(leaderId, is(followerId));
 		assertThat(responseHeader().containsKey("X-Arango-Endpoint"), is(false));

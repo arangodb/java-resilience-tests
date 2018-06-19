@@ -60,7 +60,7 @@ public class LoadBalancingConnectionTtlVstTest extends BaseLoadBalancingTest {
 			serverIds.add(serverId);
 		});
 		final Instance coordinator = im.coordinators().stream().findFirst().get();
-		im.shudown(coordinator);
+		im.shutdown(coordinator);
 		assertThat(im.isRunning(coordinator), is(false));
 		// perform 3 operations to be sure that all connections are used
 		Stream.iterate(0, i -> i + 1).limit(NUM_COORDINATORS).map(i -> arango.getVersion());

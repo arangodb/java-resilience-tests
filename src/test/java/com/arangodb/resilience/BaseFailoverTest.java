@@ -82,7 +82,8 @@ public abstract class BaseFailoverTest extends BaseTest {
 		final String leaderId = serverId();
 		assertThat(leaderId, is(not(nullValue())));
 		assertThat(responseHeader().containsKey("X-Arango-Endpoint"), is(false));
-		im.shudown(leader);
+		im.shutdown(leader);
+		im.waitForReplicationLeader();
 		final String newLeaderId = serverId();
 		assertThat(newLeaderId, is(not(nullValue())));
 		assertThat(newLeaderId, is(not(leaderId)));
