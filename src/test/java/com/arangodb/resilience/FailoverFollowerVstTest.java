@@ -48,6 +48,7 @@ import com.arangodb.velocystream.RequestType;
 public class FailoverFollowerVstTest extends BaseTest {
 
 	private Instance leader;
+	private String uuid;
 
 	@Before
 	public void setup() {
@@ -55,6 +56,7 @@ public class FailoverFollowerVstTest extends BaseTest {
 		im.startSingleServer(2);
 		im.waitForAllInstances();
 		im.waitForReplicationLeader();
+		uuid = im.getReplicationLeaderId();
 		leader = im.getReplicationLeader();
 		final ArangoDB.Builder builder = new ArangoDB.Builder();
 		configure(builder, new Host(host(leader.getEndpoint()), port(leader.getEndpoint())));
@@ -87,7 +89,7 @@ public class FailoverFollowerVstTest extends BaseTest {
 		assertThat(followerId, is(not(nullValue())));
 		assertThat(responseHeader().containsKey("X-Arango-Endpoint"), is(true));
 		im.kill(leader);
-		im.waitForReplicationLeader();
+		im.waitForReplicationLeader(uuid);
 		final String leaderId = serverId();
 		assertThat(leaderId, is(followerId));
 		assertThat(responseHeader().containsKey("X-Arango-Endpoint"), is(false));

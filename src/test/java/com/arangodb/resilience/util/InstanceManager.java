@@ -118,8 +118,20 @@ public class InstanceManager {
 		return vp.deserialize(execute(RequestType.GET, "/replication/leader"), Instance.class);
 	}
 
+	public String getReplicationLeaderId() {
+		return execute(RequestType.GET, "/replication/leader/id").get("uuid").getAsString();
+	}
+
 	public void waitForReplicationLeader() {
-		execute(RequestType.HEAD, "/replication/leader");
+		waitForReplicationLeader(null);
+	}
+
+	public void waitForReplicationLeader(final String uuid) {
+		final Request request = new Request(null, RequestType.HEAD, "/replication/leader");
+		if (uuid != null) {
+			request.putQueryParam("ignore", uuid);
+		}
+		connection.execute(request);
 	}
 
 	public boolean isRunning(final Instance instance) {

@@ -47,6 +47,7 @@ import com.arangodb.velocystream.RequestType;
 public abstract class BaseFailoverTest extends BaseTest {
 
 	private Instance leader;
+	private String uuid;
 
 	@Before
 	public void setup() {
@@ -54,6 +55,7 @@ public abstract class BaseFailoverTest extends BaseTest {
 		im.startSingleServer(2);
 		im.waitForAllInstances();
 		im.waitForReplicationLeader();
+		uuid = im.getReplicationLeaderId();
 		leader = im.getReplicationLeader();
 		final ArangoDB.Builder builder = new ArangoDB.Builder();
 		configure(builder, new Host(host(leader.getEndpoint()), port(leader.getEndpoint())));
@@ -83,7 +85,7 @@ public abstract class BaseFailoverTest extends BaseTest {
 		assertThat(leaderId, is(not(nullValue())));
 		assertThat(responseHeader().containsKey("X-Arango-Endpoint"), is(false));
 		im.kill(leader);
-		im.waitForReplicationLeader();
+		im.waitForReplicationLeader(uuid);
 		final String newLeaderId = serverId();
 		assertThat(newLeaderId, is(not(nullValue())));
 		assertThat(newLeaderId, is(not(leaderId)));
