@@ -21,7 +21,7 @@
 package com.arangodb.resilience;
 
 import com.arangodb.ArangoDB.Builder;
-import com.arangodb.internal.Host;
+import com.arangodb.internal.net.HostDescription;
 
 /**
  * @author Mark Vollmary
@@ -30,7 +30,7 @@ import com.arangodb.internal.Host;
 public class FailoverAcquireHostListVstTest extends BaseFailoverTest {
 
 	@Override
-	protected void configure(final Builder builder, final Host leader) {
+	protected void configure(final Builder builder, final HostDescription leader) {
 		builder.host(leader.getHost(), leader.getPort());
 		builder.acquireHostList(true);
 	}

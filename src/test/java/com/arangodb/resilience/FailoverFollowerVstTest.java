@@ -35,7 +35,7 @@ import org.junit.Test;
 
 import com.arangodb.ArangoDB;
 import com.arangodb.ArangoDB.Builder;
-import com.arangodb.internal.Host;
+import com.arangodb.internal.net.HostDescription;
 import com.arangodb.resilience.util.Instance;
 import com.arangodb.velocypack.VPackSlice;
 import com.arangodb.velocystream.Request;
@@ -59,11 +59,11 @@ public class FailoverFollowerVstTest extends BaseTest {
 		uuid = im.getReplicationLeaderId();
 		leader = im.getReplicationLeader();
 		final ArangoDB.Builder builder = new ArangoDB.Builder();
-		configure(builder, new Host(host(leader.getEndpoint()), port(leader.getEndpoint())));
+		configure(builder, new HostDescription(host(leader.getEndpoint()), port(leader.getEndpoint())));
 		arango = builder.build();
 	}
 
-	protected void configure(final Builder builder, final Host leader) {
+	protected void configure(final Builder builder, final HostDescription leader) {
 		im.singleServers().stream().filter(i -> port(i.getEndpoint()) != leader.getPort())
 				.forEach(i -> builder.host(host(i.getEndpoint()), port(i.getEndpoint())));
 	}

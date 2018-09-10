@@ -34,7 +34,7 @@ import java.util.stream.Stream;
 import org.junit.Test;
 
 import com.arangodb.ArangoDB.Builder;
-import com.arangodb.internal.Host;
+import com.arangodb.internal.net.HostDescription;
 import com.arangodb.resilience.util.Instance;
 
 /**
@@ -44,7 +44,7 @@ import com.arangodb.resilience.util.Instance;
 public class LoadBalancingConnectionTtlVstTest extends BaseLoadBalancingTest {
 
 	@Override
-	protected void configure(final Builder builder, final Host endpoint) {
+	protected void configure(final Builder builder, final HostDescription endpoint) {
 		builder.host(endpoint.getHost(), endpoint.getPort());
 		builder.acquireHostList(true);
 		builder.connectionTtl(3 * 1000L);

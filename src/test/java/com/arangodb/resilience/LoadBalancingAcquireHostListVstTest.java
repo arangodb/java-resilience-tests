@@ -21,7 +21,7 @@
 package com.arangodb.resilience;
 
 import com.arangodb.ArangoDB.Builder;
-import com.arangodb.internal.Host;
+import com.arangodb.internal.net.HostDescription;
 
 /**
  * @author Mark Vollmary
@@ -30,7 +30,7 @@ import com.arangodb.internal.Host;
 public class LoadBalancingAcquireHostListVstTest extends BaseLoadBalancingTest {
 
 	@Override
-	protected void configure(final Builder builder, final Host endpoint) {
+	protected void configure(final Builder builder, final HostDescription endpoint) {
 		builder.host(endpoint.getHost(), endpoint.getPort());
 		builder.acquireHostList(true);
 	}

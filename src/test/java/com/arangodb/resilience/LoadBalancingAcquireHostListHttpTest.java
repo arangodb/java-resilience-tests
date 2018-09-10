@@ -22,7 +22,7 @@ package com.arangodb.resilience;
 
 import com.arangodb.ArangoDB.Builder;
 import com.arangodb.Protocol;
-import com.arangodb.internal.Host;
+import com.arangodb.internal.net.HostDescription;
 
 /**
  * @author Mark Vollmary
@@ -31,7 +31,7 @@ import com.arangodb.internal.Host;
 public class LoadBalancingAcquireHostListHttpTest extends LoadBalancingAcquireHostListVstTest {
 
 	@Override
-	protected void configure(final Builder builder, final Host endpoint) {
+	protected void configure(final Builder builder, final HostDescription endpoint) {
 		super.configure(builder, endpoint);
 		builder.useProtocol(Protocol.HTTP_JSON);
 	}

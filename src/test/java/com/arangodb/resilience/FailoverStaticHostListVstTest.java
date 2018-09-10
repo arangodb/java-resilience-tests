@@ -24,7 +24,7 @@ import static com.arangodb.resilience.util.EndpointUtils.host;
 import static com.arangodb.resilience.util.EndpointUtils.port;
 
 import com.arangodb.ArangoDB.Builder;
-import com.arangodb.internal.Host;
+import com.arangodb.internal.net.HostDescription;
 
 /**
  * @author Mark Vollmary
@@ -33,7 +33,7 @@ import com.arangodb.internal.Host;
 public class FailoverStaticHostListVstTest extends BaseFailoverTest {
 
 	@Override
-	protected void configure(final Builder builder, final Host leader) {
+	protected void configure(final Builder builder, final HostDescription leader) {
 		builder.host(leader.getHost(), leader.getPort());
 		im.singleServers().stream().filter(i -> port(i.getEndpoint()) != leader.getPort())
 				.forEach(i -> builder.host(host(i.getEndpoint()), port(i.getEndpoint())));

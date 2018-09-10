@@ -40,7 +40,7 @@ import com.arangodb.ArangoCursor;
 import com.arangodb.ArangoDB;
 import com.arangodb.ArangoDB.Builder;
 import com.arangodb.entity.LoadBalancingStrategy;
-import com.arangodb.internal.Host;
+import com.arangodb.internal.net.HostDescription;
 import com.arangodb.model.AqlQueryOptions;
 import com.arangodb.resilience.util.Instance;
 import com.arangodb.velocypack.VPackSlice;
@@ -56,15 +56,14 @@ public abstract class BaseLoadBalancingTest extends BaseTest {
 
 	@Before
 	public void setup() {
-		final Host endpoint = im.startCluster(1, NUM_COORDINATORS, 2);
+		final HostDescription endpoint = im.startCluster(1, NUM_COORDINATORS, 2);
 		final Builder builder = new ArangoDB.Builder() //
-				.maxConnections(NUM_COORDINATORS) //
 				.loadBalancingStrategy(LoadBalancingStrategy.ROUND_ROBIN);
 		configure(builder, endpoint);
 		arango = builder.build();
 	}
 
-	protected abstract void configure(final ArangoDB.Builder builder, final Host endpoint);
+	protected abstract void configure(final ArangoDB.Builder builder, final HostDescription endpoint);
 
 	@After
 	public void teardown() {

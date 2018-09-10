@@ -30,7 +30,7 @@ import java.util.Properties;
 
 import com.arangodb.ArangoDB;
 import com.arangodb.Protocol;
-import com.arangodb.internal.Host;
+import com.arangodb.internal.net.HostDescription;
 import com.arangodb.velocypack.Type;
 import com.arangodb.velocypack.VPack;
 import com.arangodb.velocypack.VPackBuilder;
@@ -55,7 +55,7 @@ public class InstanceManager {
 			final Properties properties = new Properties();
 			properties.load(InstanceManager.class.getResourceAsStream("/aim.properties"));
 			final String endpoint = properties.getProperty("aim.endpoint", "127.0.0.1:9000");
-			final Host host = new Host(host(endpoint), port(endpoint));
+			final HostDescription host = new HostDescription(host(endpoint), port(endpoint));
 			connection = new ArangoDB.Builder().useProtocol(Protocol.HTTP_JSON).host(host.getHost(), host.getPort())
 					.user(null).build();
 		} catch (final IOException e) {
@@ -77,7 +77,7 @@ public class InstanceManager {
 		}.getType());
 	}
 
-	public Host startCluster(final int numAgents, final int numCoordinators, final int numDbServeres) {
+	public HostDescription startCluster(final int numAgents, final int numCoordinators, final int numDbServeres) {
 		final VPackSlice body = new VPackBuilder() //
 				.add(ValueType.OBJECT) //
 				.add("numAgents", numAgents) //
@@ -85,7 +85,7 @@ public class InstanceManager {
 				.add("numDbServeres", numDbServeres) //
 				.close().slice();
 		final String endpoint = execute(RequestType.POST, "/cluster", body).get("endpoint").getAsString();
-		return new Host(host(endpoint), port(endpoint));
+		return new HostDescription(host(endpoint), port(endpoint));
 	}
 
 	public Collection<Instance> startAgency() {
