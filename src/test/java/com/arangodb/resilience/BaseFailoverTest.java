@@ -35,6 +35,7 @@ import org.junit.Test;
 
 import com.arangodb.ArangoDB;
 import com.arangodb.internal.net.HostDescription;
+import com.arangodb.internal.util.RequestUtils;
 import com.arangodb.resilience.util.Instance;
 import com.arangodb.velocypack.VPackSlice;
 import com.arangodb.velocystream.Request;
@@ -75,6 +76,16 @@ public abstract class BaseFailoverTest extends BaseTest {
 		return execute.get("serverId").toString();
 	}
 
+	protected String serverIdDirty() {
+		final VPackSlice execute = executeDirty(RequestType.GET, "/_api/replication/server-id", null);
+		return execute.get("serverId").toString();
+	}
+
+	protected VPackSlice executeDirty(final RequestType requestType, final String path, final VPackSlice body) {
+		return arango.execute(new Request("_system", requestType, path).setBody(body)
+				.putHeaderParam(RequestUtils.HEADER_ALLOW_DIRTY_READ, "true")).getBody();
+	}
+
 	protected Map<String, String> responseHeader() {
 		return arango.execute(new Request("_system", RequestType.GET, "/_api/version")).getMeta();
 	}
@@ -95,6 +106,16 @@ public abstract class BaseFailoverTest extends BaseTest {
 		assertThat(newLeaderId, is(not(nullValue())));
 		assertThat(newLeaderId, is(not(leaderId)));
 		assertThat(responseHeader().containsKey("X-Arango-Endpoint"), is(false));
+	}
+
+	@Test
+	public void dirtyRead() {
+		final String leader = serverIdDirty();
+		assertThat(leader, is(not(nullValue())));
+		assertThat(serverIdDirty(), is(not(leader)));
+
+		assertThat(serverId(), is(leader));
+		assertThat(serverId(), is(leader));
 	}
 
 }
