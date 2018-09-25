@@ -27,15 +27,18 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
+import java.io.IOException;
 import java.util.Map;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.arangodb.ArangoCursor;
 import com.arangodb.ArangoDB;
 import com.arangodb.internal.net.HostDescription;
 import com.arangodb.internal.util.RequestUtils;
+import com.arangodb.model.AqlQueryOptions;
 import com.arangodb.resilience.util.Instance;
 import com.arangodb.velocypack.VPackSlice;
 import com.arangodb.velocystream.Request;
@@ -116,6 +119,21 @@ public abstract class BaseFailoverTest extends BaseTest {
 
 		assertThat(serverId(), is(leader));
 		assertThat(serverId(), is(leader));
+	}
+
+	@Test
+	public void cursorDirtyRead() throws IOException {
+		// create a cursor of batch size 1 with 4 results
+		final ArangoCursor<VPackSlice> cursor = arango.db().query("FOR i IN 1..4 RETURN i",
+			new AqlQueryOptions().batchSize(1).allowDirtyRead(true), VPackSlice.class);
+		// get the initial result
+		assertThat(cursor.hasNext(), is(true));
+		assertThat(cursor.next().isInteger(), is(true));
+		// get the second batch
+		assertThat(cursor.hasNext(), is(true));
+		assertThat(cursor.next().isInteger(), is(true));
+		// close the cursor before fetching the all batches
+		cursor.close();
 	}
 
 }
