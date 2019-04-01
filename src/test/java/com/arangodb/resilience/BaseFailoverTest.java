@@ -101,7 +101,7 @@ public abstract class BaseFailoverTest extends BaseTest {
 		im.kill(leader);
 		im.waitForReplicationLeader(uuid);
 		try {
-			Thread.sleep(3000); // agency plan is upgraded but new leader still responses with header
+			Thread.sleep(15000); // agency plan is upgraded but new leader still responses with header
 								// "X-Arango-Endpoint"
 		} catch (final InterruptedException e) {
 		}
