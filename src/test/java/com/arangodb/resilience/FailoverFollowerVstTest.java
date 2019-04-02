@@ -104,7 +104,7 @@ public class FailoverFollowerVstTest extends BaseTest {
 			} catch (final InterruptedException e) {
 			}
 			newLeaderId = serverId();
-			if (responseHeader().containsKey("X-Arango-Endpoint")) {
+			if (!responseHeader().containsKey("X-Arango-Endpoint")) {
 				break;
 			}
 			currentRun++;
