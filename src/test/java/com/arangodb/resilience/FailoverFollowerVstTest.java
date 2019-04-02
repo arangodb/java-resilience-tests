@@ -90,13 +90,29 @@ public class FailoverFollowerVstTest extends BaseTest {
 		assertThat(responseHeader().containsKey("X-Arango-Endpoint"), is(true));
 		im.kill(leader);
 		im.waitForReplicationLeader(uuid);
-		try {
-			Thread.sleep(15000); // agency plan is upgraded but new leader still responses with header
-								// "X-Arango-Endpoint"
-		} catch (final InterruptedException e) {
+		
+		
+		int sleepTime = 1000;
+		int currentRun = 0;
+		int maxRuns = 30;
+		
+		String newLeaderId = "";
+		while (currentRun < maxRuns) {
+			try {
+				Thread.sleep(sleepTime); // agency plan is upgraded but new leader still responses with header
+									// "X-Arango-Endpoint"
+			} catch (final InterruptedException e) {
+			}
+			newLeaderId = serverId();
+			if (responseHeader().containsKey("X-Arango-Endpoint")) {
+				break;
+			}
+			currentRun++;
 		}
-		final String leaderId = serverId();
-		assertThat(leaderId, is(followerId));
+
+		
+		assertThat(newLeaderId, is(not(nullValue())));
+		assertThat(newLeaderId, is(not(newLeaderId)));
 		assertThat(responseHeader().containsKey("X-Arango-Endpoint"), is(false));
 	}
 
