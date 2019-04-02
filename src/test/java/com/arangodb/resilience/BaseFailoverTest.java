@@ -101,9 +101,9 @@ public abstract class BaseFailoverTest extends BaseTest {
 		im.kill(leader);
 		im.waitForReplicationLeader(uuid);
 		
-		int sleepTime = 1000;
+		int sleepTime = 5000;
 		int currentRun = 0;
-		int maxRuns = 30;
+		int maxRuns = 6;
 		
 		String newLeaderId = "";
 		while (currentRun < maxRuns) {
