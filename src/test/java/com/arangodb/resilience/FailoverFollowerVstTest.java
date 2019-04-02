@@ -112,7 +112,7 @@ public class FailoverFollowerVstTest extends BaseTest {
 
 		
 		assertThat(newLeaderId, is(not(nullValue())));
-		assertThat(newLeaderId, is(not(newLeaderId)));
+		assertThat(followerId, is(not(newLeaderId)));
 		assertThat(responseHeader().containsKey("X-Arango-Endpoint"), is(false));
 	}
 
